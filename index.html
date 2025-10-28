@@ -124,7 +124,7 @@
 <script>
   (function(){
     const digitsEls = document.querySelectorAll('.digit');
-    const code = [null, null, null, null]; // current input
+    let code = [null, null, null, null]; // current input
 
     function render(){
       digitsEls.forEach((el, i) => {
@@ -133,6 +133,11 @@
       });
     }
     render();
+
+    function resetCode(){
+      code = [null,null,null,null];
+      render();
+    }
 
     // keypad clicks
     document.querySelectorAll('.key').forEach(k=>{
@@ -174,7 +179,8 @@
       if(same){
         modalMsg.innerHTML = "<strong>Gratulálok — kinyílt a széf!</strong><br><strong>Nyeremény: 2000coin!</strong><br><em>Figyelem: ez csak bemutató, nem valós pénz.</em>";
       } else {
-        modalMsg.innerHTML = "<strong>Sajnos nem sikerült kinyitni.</strong><br>Próbáld újra vagy használd a '⌫' gombot a törléshez.";
+        modalMsg.innerHTML = "<strong>Sajnos nem sikerült kinyitni.</strong><br>Új próbálkozáshoz a mező alaphelyzetbe áll.";
+        resetCode();
       }
       modal.style.display = 'flex';
     });
