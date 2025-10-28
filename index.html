@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Széf demó — KÓD</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Russo+One&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1:#0b0f2a;
+    --btn:#1582ff;
+    --btn-dark:#0d66d6;
+    --blue-square:#1e90ff;
+  }
+  html,body{height:100%; margin:0; font-family:Inter,system-ui,Arial; background:var(--bg1);}
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background:
+      linear-gradient(135deg, rgba(255,40,90,0.04) 0 15%, transparent 15% 30%),
+      linear-gradient(135deg, rgba(255,40,90,0.03) 30% 45%, transparent 45% 60%),
+      linear-gradient(135deg, rgba(0,200,255,0.02) 60% 75%, transparent 75% 100%);
+    z-index:0;
+    mix-blend-mode:overlay;
+  }
+
+  .wrap{position:relative; z-index:1; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:40px;}
+  .panel{
+    width:360px; max-width:95vw; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:12px; padding:22px 20px 28px; box-shadow:0 8px 30px rgba(2,6,23,0.6); color: #e8eefc; text-align:center;
+  }
+  .header{font-family: 'Russo One', sans-serif; letter-spacing:4px; color: #f7c84b; font-size:28px; margin-bottom:10px;}
+  .code-display{margin:10px auto 18px; width:100%; display:flex; justify-content:center; gap:8px;}
+  .code-input{height:44px; min-width:240px; border-radius:10px; border:2px solid rgba(255,255,255,0.06); background:transparent; color:#cfd6e6; font-size:18px; display:flex; align-items:center; justify-content:center; padding:6px 10px;}
+  .hint{color:#dbe8ff; font-size:14px; line-height:1.45; margin:10px 0 18px;}
+
+  .keypad{display:grid; grid-template-columns: repeat(3,1fr); gap:12px; justify-items:center; margin:6px 0 20px;}
+  .key{width:64px; height:52px; background:var(--blue-square); border-radius:8px; display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:20px; cursor:pointer; user-select:none; box-shadow:0 6px 14px rgba(15,50,120,0.25); transition:transform .08s ease, box-shadow .12s ease;}
+  .key:active{ transform:translateY(2px); box-shadow:0 3px 8px rgba(0,0,0,0.25); }
+  .key.gray{ background: rgba(255,255,255,0.09); color:#e7f0ff; }
+  .key.wide{ grid-column: span 2; width:100%; }
+
+  .live-badge{position:relative; display:inline-block; margin:12px 0 0; color:white; font-weight:700;}
+  .live-dot{display:inline-block; width:10px; height:10px; background:#ff4b5c; border-radius:50%; margin-right:8px; vertical-align:middle; box-shadow:0 0 6px rgba(255,75,92,0.6); animation: pulse 1.6s infinite;}
+  @keyframes pulse{0%{ transform:scale(1); opacity:1 } 50%{ transform:scale(1.25); opacity:.6 } 100%{ transform:scale(1); opacity:1 }}
+
+  .open-btn{margin-top:12px; background:linear-gradient(180deg,var(--btn),var(--btn-dark)); color:white; border:none; padding:12px 18px; border-radius:8px; font-weight:700; width:100%; cursor:pointer; box-shadow:0 10px 28px rgba(11,58,140,0.25);}
+  .small-note{ font-size:13px; color: #cbdcff; margin-top:10px; }
+
+  .digit-row{ display:flex; gap:10px; justify-content:center; margin-bottom:6px; }
+  .digit{ width:48px; height:54px; border-radius:8px; background: rgba(255,255,255,0.04); display:flex; align-items:center; justify-content:center; font-size:20px; color:#f0f8ff; border:2px solid rgba(255,255,255,0.03); box-shadow:inset 0 -6px 12px rgba(0,0,0,0.25); }
+
+  .modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background: rgba(2,6,23,0.6); z-index:40; }
+  .modal .box{ width:320px; max-width:92vw; background:#061036; border-radius:12px; padding:18px; color:white; text-align:center; box-shadow:0 12px 40px rgba(2,6,23,0.8); }
+  .modal .box button{ margin-top:12px; padding:10px 12px; border-radius:8px; border:none; background:var(--btn); color:white; font-weight:700; cursor:pointer; }
+
+  @media(max-width:420px){
+    .key{ width:56px; height:48px; font-size:18px; }
+    .digit{ width:42px; height:48px; font-size:18px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="panel" role="region" aria-label="Széf demó">
+    <div class="header">KÓD: ? ? ? ?</div>
+
+    <div class="code-display" aria-hidden="true">
+      <div class="code-input">
+        <div style="opacity:.85; font-weight:600;">Add meg a 4 számjegyet</div>
+      </div>
+    </div>
+
+    <div class="digit-row" id="digits">
+      <div class="digit" data-index="0">?</div>
+      <div class="digit" data-index="1">?</div>
+      <div class="digit" data-index="2">?</div>
+      <div class="digit" data-index="3">?</div>
+    </div>
+
+    <div class="hint">
+      100 like = 1 tipp vagy 1 🌹<br>
+      500 db V-BUCK nyerhetsz!<br>
+      <strong>Csak nyisd ki a széfet.</strong><br>
+      Tippeld meg a 4 számjegyet.
+    </div>
+
+    <div class="keypad" role="group" aria-label="Numerikus billentyűzet">
+      <div class="key" data-key="1">1</div>
+      <div class="key" data-key="2">2</div>
+      <div class="key" data-key="3">3</div>
+      <div class="key" data-key="4">4</div>
+      <div class="key" data-key="5">5</div>
+      <div class="key" data-key="6">6</div>
+      <div class="key" data-key="7">7</div>
+      <div class="key" data-key="8">8</div>
+      <div class="key" data-key="9">9</div>
+
+      <div class="key gray" id="back" aria-label="Törlés">⌫</div>
+      <div class="key" data-key="0">0</div>
+      <div class="key gray" id="empty"></div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;">
+      <div class="live-badge"><span class="live-dot" aria-hidden="true"></span> Koppints a LIVE nézéséhez</div>
+      <div style="text-align:right;">
+        <div style="background:#ff4da6;color:white;padding:6px 8px;border-radius:8px;font-weight:700;font-size:13px;">Most ÉLŐ adás</div>
+      </div>
+    </div>
+
+    <button class="open-btn" id="openBtn">Nyisd ki a széfet</button>
+    <div class="small-note">Ez egy demó oldal — nem valós nyeremény.</div>
+  </div>
+</div>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="box">
+    <div id="modalTitle" style="font-weight:800;font-size:18px;margin-bottom:8px;">Eredmény</div>
+    <div id="modalMsg" style="line-height:1.4;"></div>
+    <button id="closeModal">Rendben</button>
+  </div>
+</div>
+
+<script>
+  (function(){
+    const digitsEls = document.querySelectorAll('.digit');
+    const code = [null, null, null, null]; // current input
+
+    function render(){
+      digitsEls.forEach((el, i) => {
+        const v = code[i];
+        el.textContent = v === null ? '?' : v;
+      });
+    }
+    render();
+
+    // keypad clicks
+    document.querySelectorAll('.key').forEach(k=>{
+      k.addEventListener('click', ()=> {
+        const key = k.dataset.key;
+        if(!key) return;
+        // first empty index
+        let idx = code.findIndex(v => v === null);
+        if(idx === -1) return; // full
+        code[idx] = key;
+        render();
+      });
+    });
+
+    // backspace
+    document.getElementById('back').addEventListener('click', ()=> {
+      for(let i = code.length -1; i>=0; --i){
+        if(code[i] !== null){
+          code[i] = null;
+          render();
+          break;
+        }
+      }
+    });
+
+    const modal = document.getElementById('modal');
+    const modalMsg = document.getElementById('modalMsg');
+
+    // SECRET is 3341 as requested
+    const secret = ['3','3','4','1'];
+
+    document.getElementById('openBtn').addEventListener('click', ()=> {
+      if(code.some(v => v === null)){
+        modalMsg.innerHTML = "<strong>Töltse ki a hiányzó számokat!</strong><br> A kód 4 jegyű.";
+        modal.style.display = 'flex';
+        return;
+      }
+      const same = code.every((v,i)=> v === secret[i]);
+      if(same){
+        modalMsg.innerHTML = "<strong>Gratulálok — kinyílt a széf!</strong><br><strong>Nyeremény: 2000coin!</strong><br><em>Figyelem: ez csak bemutató, nem valós pénz.</em>";
+      } else {
+        modalMsg.innerHTML = "<strong>Sajnos nem sikerült kinyitni.</strong><br>Próbáld újra vagy használd a '⌫' gombot a törléshez.";
+      }
+      modal.style.display = 'flex';
+    });
+
+    document.getElementById('closeModal').addEventListener('click', ()=> modal.style.display = 'none');
+
+    // keyboard support
+    window.addEventListener('keydown', (e)=>{
+      if(e.key >= '0' && e.key <= '9'){
+        const k = document.querySelector('.key[data-key="'+e.key+'"]');
+        if(k) k.click();
+      } else if(e.key === 'Backspace'){
+        document.getElementById('back').click();
+      } else if(e.key === 'Enter'){
+        document.getElementById('openBtn').click();
+      }
+    });
+  })();
+</script>
+</body>
+</html>
